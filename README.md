@@ -20,7 +20,6 @@
    ```bash
    cd AstrBot/data/plugins
    git clone https://github.com/qdie1546-source/astrbot_plugin_xinglyunapi.git
-```
 
 1. 重启 AstrBot 或在 WebUI 中启用插件。
 2. 如需安装依赖，AstrBot 会自动读取 requirements.txt 并安装。
