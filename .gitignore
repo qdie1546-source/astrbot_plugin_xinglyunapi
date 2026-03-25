@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.eggs/
+*.egg
+
+# 虚拟环境
+.venv
+venv
+env
+
+# 开发工具
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 日志和数据库
+*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# 临时文件
+*.tmp
+*.temp
+*.bak
+
+# 项目特定
+data/         # 插件数据存储目录（若本地测试）
