@@ -13,7 +13,6 @@ class XinglyunApiPlugin(Star):
 
     @filter.command("Rapi")
     async def handle_rapi(self, event: AstrMessageEvent):
-        """统一入口指令，格式: /Rapi <api_name> [参数]"""
         parts = event.message_str.strip().split(maxsplit=2)
         if len(parts) < 2:
             yield event.plain_result("用法：/Rapi <API名称> [参数]")
@@ -55,20 +54,14 @@ class XinglyunApiPlugin(Star):
                     async with session.get(url, headers=headers) as resp:
                         response_text = await resp.text()
                 elif method == "POST":
-                    async with session.post(
-                        url,
-                        json=body_json if isinstance(body_json, dict) else None,
-                        data=body_json if isinstance(body_json, str) else None,
-                        headers=headers
-                    ) as resp:
+                    async with session.post(url, json=body_json if isinstance(body_json, dict) else None,
+                                            data=body_json if isinstance(body_json, str) else None,
+                                            headers=headers) as resp:
                         response_text = await resp.text()
                 elif method == "PUT":
-                    async with session.put(
-                        url,
-                        json=body_json if isinstance(body_json, dict) else None,
-                        data=body_json if isinstance(body_json, str) else None,
-                        headers=headers
-                    ) as resp:
+                    async with session.put(url, json=body_json if isinstance(body_json, dict) else None,
+                                           data=body_json if isinstance(body_json, str) else None,
+                                           headers=headers) as resp:
                         response_text = await resp.text()
                 elif method == "DELETE":
                     async with session.delete(url, headers=headers) as resp:
