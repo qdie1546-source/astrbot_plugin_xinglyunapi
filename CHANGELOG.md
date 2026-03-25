@@ -1,4 +1,4 @@
- 自定义API管理插件说明 body 
+ 自定义API管理插件说明 
 
 # 自定义API管理插件（XingYun API Manager） v2.2.2
 
@@ -151,6 +151,44 @@ __项目链接：__[GitHub 仓库](https://github.com/qdie1546-source/astrbot_pl
 *   JSON 配置务必合法，否则插件无法解析
 
 ## 8\. 版本更新记录
+
+# XingYunAPI 插件更新日志 v2.2.6
+
+## 版本号
+**v2.2.6**
+
+## 更新日期
+2026-03-26
+
+## 更新内容
+
+### 1️⃣ 核心改动
+- 修复了 API 返回图片仅显示链接的问题，现在插件会**直接发送图片内容**到聊天。
+- 支持图片、音频、视频直接发送，避免用户手动点击 URL。
+- 改进 URL 类型判断，支持带参数的链接（如 `.jpg?size=640`）。
+- `/Rapi` 和 `/调试api` 命令支持 async generator 正确发送消息。
+- JSON 路径解析逻辑保持原样，但增加了容错处理。
+
+### 2️⃣ 主要修改文件
+- `main.py`
+
+#### 核心代码示例
+```python
+# 下载图片并发送
+if self.is_image(url):
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.get(url)
+            resp.raise_for_status()
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg")
+            tmp.write(resp.content)
+            tmp.close()
+            yield event.image_result(tmp.name)
+            os.unlink(tmp.name)
+            return
+    except Exception as e:
+        yield event.plain_result(f"图片下载失败: {e}")
+        return
 
 ### v2.2.2
 
