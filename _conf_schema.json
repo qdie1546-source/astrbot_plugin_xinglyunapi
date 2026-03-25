@@ -1,23 +1,33 @@
 {
   "api_list": {
-    "type": "array",
-    "description": "API配置列表",
-    "items": {
-      "type": "object",
-      "properties": {
-        "name": { "type": "string" },
-        "trigger": { "type": "string" },
-        "url": { "type": "string" },
-        "method": { "type": "string", "enum": ["GET", "POST"] },
-        "params": {
-          "type": "array",
-          "items": { "type": "string" }
-        }
+    "type": "template_list",
+    "description": "API配置",
+    "template": {
+      "name": { "type": "string", "description": "API名称" },
+      "trigger": { "type": "string", "description": "触发词" },
+      "url": { "type": "string", "description": "接口地址" },
+      "method": {
+        "type": "string",
+        "default": "GET",
+        "description": "请求方式"
+      },
+      "params": {
+        "type": "list",
+        "description": "参数名"
+      },
+      "json_path": {
+        "type": "string",
+        "description": "JSON提取路径（如 data.url）"
       }
     }
   },
+  "cooldown": {
+    "type": "int",
+    "default": 3,
+    "description": "用户冷却时间（秒）"
+  },
   "ad_text": {
     "type": "string",
-    "description": "广告位内容"
+    "description": "广告位"
   }
 }
