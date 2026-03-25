@@ -1,79 +1,23 @@
 {
-  "global_timeout": {
-    "type": "int",
-    "description": "请求超时时间（秒）",
-    "default": 10
-  },
-  "ad_banner": {
-    "type": "object",
-    "description": "广告位配置",
+  "api_list": {
+    "type": "array",
+    "description": "API配置列表",
     "items": {
-      "enabled": {
-        "type": "bool",
-        "description": "启用广告",
-        "default": true
-      },
-      "text": {
-        "type": "text",
-        "description": "广告文案",
-        "default": "✨ 本插件API由【星落云API】提供支持，更多接口访问：https://api.xingluoyun.com"
-      },
-      "image_url": {
-        "type": "string",
-        "description": "广告图片链接（可选）",
-        "default": ""
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "trigger": { "type": "string" },
+        "url": { "type": "string" },
+        "method": { "type": "string", "enum": ["GET", "POST"] },
+        "params": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
       }
     }
   },
-  "apis": {
-    "type": "dict",
-    "description": "API配置列表，键为触发指令，值为API详细配置",
-    "items": {},
-    "template_schema": {
-      "url": {
-        "name": "API地址",
-        "description": "接口URL，支持{参数名}占位符",
-        "type": "text",
-        "required": true
-      },
-      "method": {
-        "name": "请求方式",
-        "description": "HTTP请求方法",
-        "type": "string",
-        "options": ["GET", "POST"],
-        "default": "GET"
-      },
-      "headers": {
-        "name": "请求头",
-        "description": "自定义请求头（JSON格式）",
-        "type": "dict",
-        "default": {}
-      },
-      "params": {
-        "name": "参数配置",
-        "description": "定义接口参数",
-        "type": "dict",
-        "items": {
-          "name": {
-            "name": "参数名",
-            "type": "string"
-          },
-          "description": {
-            "name": "参数描述",
-            "type": "string"
-          },
-          "required": {
-            "name": "是否必填",
-            "type": "bool",
-            "default": true
-          }
-        }
-      },
-      "description": {
-        "name": "功能描述",
-        "type": "text",
-        "default": ""
-      }
-    }
+  "ad_text": {
+    "type": "string",
+    "description": "广告位内容"
   }
 }
