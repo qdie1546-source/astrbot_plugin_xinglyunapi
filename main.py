@@ -1,5 +1,8 @@
 import re
+import json
+import time
 import httpx
+
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star
 
@@ -9,9 +12,10 @@ class XingYunAPI(Star):
     def __init__(self, context: Context, config: dict):
         super().__init__(context)
         self.config = config
+        self.user_cd = {}
 
     # ========================
-    # /查api
+    # API列表
     # ========================
     @filter.command("查api")
     async def list_api(self, event: AstrMessageEvent):
@@ -19,10 +23,10 @@ class XingYunAPI(Star):
         ad = self.config.get("ad_text", "")
 
         if not api_list:
-            yield event.plain_result("暂无API配置")
+            yield event.plain_result("暂无API")
             return
 
-        msg = "📡 可用API列表：\n\n"
+        msg = "📡 API列表：\n\n"
         for api in api_list:
             msg += f"🔹 {api['trigger']} → {api['name']}\n"
 
@@ -32,13 +36,32 @@ class XingYunAPI(Star):
         yield event.plain_result(msg)
 
     # ========================
-    # /Rapi 调用
+    # 限流检测
+    # ========================
+    def check_cd(self, user_id):
+        cd = self.config.get("cooldown", 3)
+        now = time.time()
+
+        if user_id in self.user_cd:
+            if now - self.user_cd[user_id] < cd:
+                return False
+
+        self.user_cd[user_id] = now
+        return True
+
+    # ========================
+    # API调用
     # ========================
     @filter.command("Rapi")
     async def call_api(self, event: AstrMessageEvent):
-        text = event.message_str.strip()
 
-        parts = text.split()
+        user_id = event.get_sender_id()
+
+        if not self.check_cd(user_id):
+            yield event.plain_result("请求过快，请稍后再试")
+            return
+
+        parts = event.message_str.strip().split()
         if len(parts) < 2:
             yield event.plain_result("用法：/Rapi 指令 参数")
             return
@@ -46,66 +69,99 @@ class XingYunAPI(Star):
         trigger = parts[1]
         args = parts[2:]
 
-        api_list = self.config.get("api_list", [])
-
-        target_api = None
-        for api in api_list:
-            if api["trigger"] == trigger:
-                target_api = api
-                break
-
-        if not target_api:
-            yield event.plain_result("未找到该API")
+        api = self.find_api(trigger)
+        if not api:
+            yield event.plain_result("API不存在")
             return
 
-        url = target_api["url"]
-        method = target_api.get("method", "GET")
-        params_keys = target_api.get("params", [])
+        content = await self.request_api(api, args)
 
-        # 参数映射
+        await self.handle_response(event, content, api)
+
+    # ========================
+    # 调试API
+    # ========================
+    @filter.command("调试api")
+    async def debug_api(self, event: AstrMessageEvent):
+
+        parts = event.message_str.strip().split()
+        if len(parts) < 2:
+            yield event.plain_result("用法：/调试api 指令 参数")
+            return
+
+        trigger = parts[1]
+        args = parts[2:]
+
+        api = self.find_api(trigger)
+        if not api:
+            yield event.plain_result("API不存在")
+            return
+
+        content = await self.request_api(api, args)
+
+        yield event.plain_result(f"调试结果：\n{content}")
+
+    # ========================
+    # 查找API
+    # ========================
+    def find_api(self, trigger):
+        for api in self.config.get("api_list", []):
+            if api["trigger"] == trigger:
+                return api
+        return None
+
+    # ========================
+    # 请求API
+    # ========================
+    async def request_api(self, api, args):
         params = {}
-        for i, key in enumerate(params_keys):
+        keys = api.get("params", [])
+
+        for i, key in enumerate(keys):
             if i < len(args):
                 params[key] = args[i]
 
         try:
             async with httpx.AsyncClient(timeout=15) as client:
-                if method == "GET":
-                    resp = await client.get(url, params=params)
+                if api.get("method") == "POST":
+                    resp = await client.post(api["url"], data=params)
                 else:
-                    resp = await client.post(url, data=params)
+                    resp = await client.get(api["url"], params=params)
 
-            content = resp.text.strip()
-
-            # 自动解析
-            await self.handle_response(event, content)
-
+            return resp.text.strip()
         except Exception as e:
-            yield event.plain_result(f"请求失败：{str(e)}")
+            return f"请求失败: {str(e)}"
 
     # ========================
-    # 响应处理核心
+    # JSON路径解析
     # ========================
-    async def handle_response(self, event, content: str):
+    def extract_json(self, content, path):
+        try:
+            data = json.loads(content)
+            for key in path.replace("]", "").split("."):
+                if "[" in key:
+                    k, i = key.split("[")
+                    data = data[k][int(i)]
+                else:
+                    data = data[key]
+            return str(data)
+        except:
+            return content
 
-        # JSON解析
-        if content.startswith("{"):
-            try:
-                import json
-                data = json.loads(content)
+    # ========================
+    # 响应处理
+    # ========================
+    async def handle_response(self, event, content, api):
 
-                # 常见字段 msg / data
-                for key in ["msg", "data", "url"]:
-                    if key in data:
-                        content = str(data[key])
-                        break
-            except:
-                pass
+        # JSON路径提取
+        if api.get("json_path"):
+            content = self.extract_json(content, api["json_path"])
 
-        # 提取URL
-        url_match = re.findall(r'https?://[^\s]+', content)
-        if url_match:
-            url = url_match[0]
+        # URL识别
+        urls = re.findall(r'https?://[^\s]+', content)
+
+        if urls:
+            url = urls[0]
 
             if self.is_image(url):
                 yield event.image_result(url)
@@ -122,7 +178,6 @@ class XingYunAPI(Star):
             yield event.plain_result(url)
             return
 
-        # fallback
         yield event.plain_result(content)
 
     def is_image(self, url):
