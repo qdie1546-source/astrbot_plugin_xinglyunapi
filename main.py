@@ -115,9 +115,9 @@ class XingYunAPI(Star):
     async def request_api(self, api, args):
         params = {}
 
-        # 🔥 关键：字符串参数解析（替代 list）
+        # 🔥 UI兼容：params 是字符串，用空格分隔
         param_str = api.get("params", "")
-        keys = [x.strip() for x in param_str.split(",") if x.strip()]
+        keys = [x.strip() for x in param_str.split() if x.strip()]
 
         for i, key in enumerate(keys):
             if i < len(args):
