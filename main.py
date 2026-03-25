@@ -13,24 +13,36 @@ class XingYunAPI(Star):
         super().__init__(context)
         self.config = config
         self.user_cd = {}
+        self.api_data = {}
+
+        self.load_all_api()
+
+    # ========================
+    # 加载所有API配置
+    # ========================
+    def load_all_api(self):
+        try:
+            text = self.config.get("api_json", "{}")
+            self.api_data = json.loads(text)
+        except Exception as e:
+            print("API配置解析失败:", e)
+            self.api_data = {}
 
     # ========================
     # API列表
     # ========================
     @filter.command("查api")
     async def list_api(self, event: AstrMessageEvent):
-        api_list = self.config.get("api_list", [])
 
-        if not api_list:
+        if not self.api_data:
             yield event.plain_result("暂无API配置")
             return
 
         msg = "📡 API列表：\n\n"
 
-        for api in api_list:
+        for key, api in self.api_data.items():
             name = api.get("name", "未命名")
-            trigger = api.get("trigger", "未知指令")
-            msg += f"🔹 {trigger} → {name}\n"
+            msg += f"🔹 {key} → {name}\n"
 
         yield event.plain_result(msg)
 
@@ -104,10 +116,7 @@ class XingYunAPI(Star):
     # 查找API
     # ========================
     def find_api(self, trigger):
-        for api in self.config.get("api_list", []):
-            if api.get("trigger") == trigger:
-                return api
-        return None
+        return self.api_data.get(trigger)
 
     # ========================
     # 请求API
@@ -115,9 +124,7 @@ class XingYunAPI(Star):
     async def request_api(self, api, args):
         params = {}
 
-        # 🔥 UI兼容：params 是字符串，用空格分隔
-        param_str = api.get("params", "")
-        keys = [x.strip() for x in param_str.split() if x.strip()]
+        keys = api.get("params", [])
 
         for i, key in enumerate(keys):
             if i < len(args):
@@ -185,7 +192,6 @@ class XingYunAPI(Star):
             yield event.plain_result(url)
             return
 
-        # fallback
         yield event.plain_result(content)
 
     # ========================
