@@ -1,5 +1,5 @@
 name: 自定义API管理
 author: 星落云
-version: v2.1.0
+version: v2.1.1
 description: 可动态配置API接口并通过指令调用，支持图片/音频/视频自动识别返回
 repo: https://github.com/qdie1546-source/astrbot_plugin_xinglyunapi.git
