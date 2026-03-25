@@ -9,25 +9,27 @@ class XinglyunApiPlugin(Star):
         super().__init__(context)
         self.config = config
         self.enable_logging = config.get("enable_logging", False)
-        self.apis = config.get("apis", [])
+        self.apis = {api["name"]: api for api in config.get("apis", [])}  # 以 name 为键的字典
 
-    @filter.event_message_type(filter.EventMessageType.ALL)
-    async def on_message(self, event: AstrMessageEvent):
-        message = event.message_str.strip()
-        if not message:
+    @filter.command("Rapi")
+    async def handle_rapi(self, event: AstrMessageEvent):
+        """统一入口指令，格式: /Rapi <api_name> [参数]"""
+        parts = event.message_str.strip().split(maxsplit=2)
+        if len(parts) < 2:
+            yield event.plain_result("用法：/Rapi <API名称> [参数]")
             return
-        # 遍历API配置，检查指令匹配
-        for api in self.apis:
-            command = api.get("command", "").strip()
-            if not command:
-                continue
-            if message.startswith(command):
-                param_str = message[len(command):].strip()
-                await self.call_api(event, api, param_str)
-                return
+
+        api_name = parts[1]
+        param_str = parts[2] if len(parts) > 2 else ""
+
+        if api_name not in self.apis:
+            yield event.plain_result(f"未找到名为 {api_name} 的 API 配置")
+            return
+
+        api = self.apis[api_name]
+        await self.call_api(event, api, param_str)
 
     async def call_api(self, event: AstrMessageEvent, api: dict, param_str: str):
-        # 替换URL中的占位符
         url = api["url"]
         if "{param}" in url:
             url = url.replace("{param}", param_str)
@@ -35,7 +37,6 @@ class XinglyunApiPlugin(Star):
         method = api.get("method", "GET").upper()
         headers = api.get("headers", {})
 
-        # 处理请求体（仅POST/PUT）
         body_json = None
         body_template = api.get("body", "")
         if body_template and method in ["POST", "PUT"]:
@@ -78,7 +79,6 @@ class XinglyunApiPlugin(Star):
                 if self.enable_logging:
                     logger.info(f"[星落云API] 响应状态码: {resp.status}")
 
-                # 根据配置格式化响应
                 resp_type = api.get("response_type", "text")
                 if resp_type == "json":
                     try:
@@ -96,5 +96,4 @@ class XinglyunApiPlugin(Star):
                 await event.send(event.plain_result(f"API调用失败: {str(e)}"))
 
     async def terminate(self):
-        """插件卸载时清理（可选）"""
         pass
