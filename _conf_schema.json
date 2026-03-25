@@ -3,7 +3,7 @@
     "type": "bool",
     "description": "是否启用调用日志输出",
     "default": false,
-    "hint": "开启后会在控制台输出请求URL、参数、响应状态等信息，生产环境建议关闭以避免性能影响。"
+    "hint": "开启后会在控制台输出请求URL、参数、响应状态等信息，生产环境建议关闭。"
   },
   "apis": {
     "type": "template_list",
@@ -12,9 +12,9 @@
       "api_config": {
         "name": "API配置",
         "items": {
-          "command": {
+          "name": {
             "type": "string",
-            "description": "触发指令，例如 /weather"
+            "description": "API标识名称，用于 /Rapi 后的子命令"
           },
           "url": {
             "type": "string",
