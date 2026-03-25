@@ -1,6 +1,6 @@
 import json
 import aiohttp
-from astrbot.api.event import filter, AstrMessageEvent, EventMessageType
+from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star
 from astrbot.api import logger
 
@@ -11,7 +11,7 @@ class XinglyunApiPlugin(Star):
         self.enable_logging = config.get("enable_logging", False)
         self.apis = config.get("apis", [])
 
-    @filter.event_message_type(EventMessageType.ALL)
+    @filter.event_message_type(filter.EventMessageType.ALL)
     async def on_message(self, event: AstrMessageEvent):
         message = event.message_str.strip()
         if not message:
