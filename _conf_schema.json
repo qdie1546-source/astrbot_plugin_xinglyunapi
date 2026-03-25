@@ -22,12 +22,12 @@
       "method": {
         "type": "string",
         "default": "GET",
-        "description": "请求方式"
+        "description": "请求方式（GET/POST）"
       },
       "params": {
         "type": "string",
         "default": "",
-        "description": "参数（用逗号分隔，如：city,type）"
+        "description": "参数（用空格分隔，如：city type）"
       },
       "json_path": {
         "type": "string",
@@ -40,10 +40,5 @@
     "type": "int",
     "default": 3,
     "description": "冷却时间（秒）"
-  },
-  "recommend_url": {
-    "type": "string",
-    "default": "https://cn.apihz.cn",
-    "description": "推荐API网站：https://cn.apihz.cn"
   }
 }
