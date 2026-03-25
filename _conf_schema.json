@@ -6,33 +6,36 @@
     "template": {
       "name": {
         "type": "string",
-        "description": "API名称",
-        "default": "示例API"
+        "default": "示例API",
+        "description": "API名称"
       },
       "trigger": {
         "type": "string",
-        "description": "触发指令",
-        "default": "demo"
+        "default": "demo",
+        "description": "触发指令"
       },
       "url": {
         "type": "string",
-        "description": "接口地址",
-        "default": "https://example.com/api"
+        "default": "https://example.com/api",
+        "description": "接口地址"
       },
       "method": {
         "type": "string",
-        "description": "请求方式",
-        "default": "GET"
+        "default": "GET",
+        "description": "请求方式"
       },
+
+      // ❗关键修改：不用 list，改成 string
       "params": {
-        "type": "list",
-        "description": "参数列表",
-        "default": []
+        "type": "string",
+        "default": "",
+        "description": "参数（用逗号分隔，例如：city,type）"
       },
+
       "json_path": {
         "type": "string",
-        "description": "JSON提取路径",
-        "default": ""
+        "default": "",
+        "description": "JSON路径（如 data.url）"
       }
     }
   },
@@ -40,12 +43,12 @@
   "cooldown": {
     "type": "int",
     "default": 3,
-    "description": "接口调用冷却时间（秒）"
+    "description": "冷却时间"
   },
 
   "recommend_url": {
     "type": "string",
     "default": "https://cn.apihz.cn",
-    "description": "🚀 推荐API网站（点击访问）：https://cn.apihz.cn"
+    "description": "🚀 推荐API网站：https://cn.apihz.cn"
   }
 }
