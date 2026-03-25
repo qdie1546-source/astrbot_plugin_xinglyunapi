@@ -1,10 +1,6 @@
 import re
 import json
 import time
-import httpx
-import tempfile
-import os
-
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star
 
@@ -82,7 +78,6 @@ class XingYunAPI(Star):
             return
 
         content = await self.request_api(api, args)
-
         async for r in self.handle_response(event, content, api):
             yield r
 
@@ -126,6 +121,7 @@ class XingYunAPI(Star):
             if i < len(args):
                 params[key] = args[i]
 
+        import httpx
         try:
             async with httpx.AsyncClient(timeout=15) as client:
                 method = api.get("method", "GET").upper()
@@ -166,34 +162,22 @@ class XingYunAPI(Star):
 
         # 提取URL
         urls = re.findall(r'https?://[^\s]+', content)
-
         if urls:
             url = urls[0]
 
-            # 图片直接发送
+            # 图片直接发送（网络 URL）
             if self.is_image(url):
-                try:
-                    async with httpx.AsyncClient(timeout=15) as client:
-                        resp = await client.get(url)
-                        resp.raise_for_status()
-                        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg")
-                        tmp.write(resp.content)
-                        tmp.close()
-                        yield event.image_result(tmp.name)
-                        os.unlink(tmp.name)
-                        return
-                except Exception as e:
-                    yield event.plain_result(f"图片下载失败: {e}")
-                    return
+                yield event.image_result(url, type="url")
+                return
 
             # 音频直接发送
             if self.is_audio(url):
-                yield event.record_result(url)
+                yield event.record_result(url, type="url")
                 return
 
             # 视频直接发送
             if self.is_video(url):
-                yield event.video_result(url)
+                yield event.video_result(url, type="url")
                 return
 
             # fallback
