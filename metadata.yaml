@@ -1,5 +1,5 @@
 name: 自定义API管理
 author: 星落云
-version: v2.2.3
+version: v2.2.4
 description: 支持多API配置、JSON路径解析、接口调试、防刷限流的高级API管理插件
 repo: https://github.com/qdie1546-source/astrbot_plugin_xinglyunapi.git
