@@ -1,4 +1,4 @@
- 自定义API管理插件说明 body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; background: #f9f9f9; color: #333; } h1, h2, h3 { color: #2c3e50; } pre { background: #eee; padding: 10px; border-radius: 5px; overflow-x: auto; } code { font-family: Consolas, monospace; color: #c7254e; } table { border-collapse: collapse; width: 100%; margin-bottom: 20px; } th, td { border: 1px solid #ccc; padding: 8px; text-align: left; } th { background: #f0f0f0; } a { color: #3498db; text-decoration: none; } a:hover { text-decoration: underline; } .section { margin-bottom: 30px; }
+ 自定义API管理插件说明 body 
 
 # 自定义API管理插件（XingYun API Manager） v2.2.2
 
