@@ -2,6 +2,8 @@ import re
 import json
 import time
 import httpx
+import tempfile
+import os
 
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star
@@ -32,13 +34,11 @@ class XingYunAPI(Star):
     # ========================
     @filter.command("查api")
     async def list_api(self, event: AstrMessageEvent):
-
         if not self.api_data:
             yield event.plain_result("暂无API配置")
             return
 
         msg = "📡 API列表：\n\n"
-
         for key, api in self.api_data.items():
             if not isinstance(api, dict):
                 continue
@@ -53,11 +53,9 @@ class XingYunAPI(Star):
     def check_cd(self, user_id):
         cd = self.config.get("cooldown", 3)
         now = time.time()
-
         if user_id in self.user_cd:
             if now - self.user_cd[user_id] < cd:
                 return False
-
         self.user_cd[user_id] = now
         return True
 
@@ -66,9 +64,7 @@ class XingYunAPI(Star):
     # ========================
     @filter.command("Rapi")
     async def call_api(self, event: AstrMessageEvent):
-
         user_id = event.get_sender_id()
-
         if not self.check_cd(user_id):
             yield event.plain_result("请求过快，请稍后再试")
             return
@@ -78,18 +74,15 @@ class XingYunAPI(Star):
             yield event.plain_result("用法：/Rapi 指令 参数")
             return
 
-        trigger = parts[1]
+        trigger = parts[1].lower()
         args = parts[2:]
-
         api = self.find_api(trigger)
         if not api:
             yield event.plain_result("API不存在")
             return
 
-        # 调用API
         content = await self.request_api(api, args)
 
-        # 修正点：async generator 需要 async for
         async for r in self.handle_response(event, content, api):
             yield r
 
@@ -98,22 +91,19 @@ class XingYunAPI(Star):
     # ========================
     @filter.command("调试api")
     async def debug_api(self, event: AstrMessageEvent):
-
         parts = event.message_str.strip().split()
         if len(parts) < 2:
             yield event.plain_result("用法：/调试api 指令 参数")
             return
 
-        trigger = parts[1]
+        trigger = parts[1].lower()
         args = parts[2:]
-
         api = self.find_api(trigger)
         if not api:
             yield event.plain_result("API不存在")
             return
 
         content = await self.request_api(api, args)
-
         async for r in self.handle_response(event, content, api):
             yield r
 
@@ -131,24 +121,23 @@ class XingYunAPI(Star):
     # ========================
     async def request_api(self, api, args):
         params = {}
-
         keys = api.get("params", [])
-
         for i, key in enumerate(keys):
             if i < len(args):
                 params[key] = args[i]
 
         try:
             async with httpx.AsyncClient(timeout=15) as client:
-                if api.get("method", "GET").upper() == "POST":
-                    resp = await client.post(api.get("url"), data=params)
-                else:
-                    resp = await client.get(api.get("url"), params=params)
-
+                method = api.get("method", "GET").upper()
+                resp = await client.request(
+                    method,
+                    api.get("url"),
+                    params=params if method == "GET" else None,
+                    data=params if method == "POST" else None
+                )
             return resp.text.strip()
-
         except Exception as e:
-            return f"请求失败: {str(e)}"
+            return json.dumps({"error": f"请求失败: {str(e)}"})
 
     # ========================
     # JSON路径解析
@@ -156,24 +145,20 @@ class XingYunAPI(Star):
     def extract_json(self, content, path):
         try:
             data = json.loads(content)
-
             for key in path.replace("]", "").split("."):
                 if "[" in key:
                     k, i = key.split("[")
                     data = data[k][int(i)]
                 else:
                     data = data[key]
-
             return str(data)
-
         except Exception:
             return content
 
     # ========================
-    # 响应处理（async generator）
+    # 响应处理
     # ========================
     async def handle_response(self, event, content, api):
-
         # JSON路径提取
         json_path = api.get("json_path", "")
         if json_path:
@@ -185,18 +170,33 @@ class XingYunAPI(Star):
         if urls:
             url = urls[0]
 
+            # 图片直接发送
             if self.is_image(url):
-                yield event.image_result(url)
-                return
+                try:
+                    async with httpx.AsyncClient(timeout=15) as client:
+                        resp = await client.get(url)
+                        resp.raise_for_status()
+                        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg")
+                        tmp.write(resp.content)
+                        tmp.close()
+                        yield event.image_result(tmp.name)
+                        os.unlink(tmp.name)
+                        return
+                except Exception as e:
+                    yield event.plain_result(f"图片下载失败: {e}")
+                    return
 
+            # 音频直接发送
             if self.is_audio(url):
                 yield event.record_result(url)
                 return
 
+            # 视频直接发送
             if self.is_video(url):
                 yield event.video_result(url)
                 return
 
+            # fallback
             yield event.plain_result(url)
             return
 
@@ -207,10 +207,13 @@ class XingYunAPI(Star):
     # 类型判断
     # ========================
     def is_image(self, url):
-        return any(url.lower().endswith(x) for x in [".jpg", ".png", ".jpeg", ".gif", ".webp"])
+        url = url.split("?")[0].lower()
+        return any(url.endswith(x) for x in [".jpg", ".png", ".jpeg", ".gif", ".webp"])
 
     def is_audio(self, url):
-        return any(url.lower().endswith(x) for x in [".mp3", ".wav", ".aac"])
+        url = url.split("?")[0].lower()
+        return any(url.endswith(x) for x in [".mp3", ".wav", ".aac"])
 
     def is_video(self, url):
-        return any(url.lower().endswith(x) for x in [".mp4", ".m3u8", ".flv"])
+        url = url.split("?")[0].lower()
+        return any(url.endswith(x) for x in [".mp4", ".m3u8", ".flv"])
