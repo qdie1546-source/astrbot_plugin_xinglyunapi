@@ -14,7 +14,6 @@ class XingYunAPI(Star):
         self.config = config
         self.user_cd = {}
         self.api_data = {}
-
         self.load_all_api()
 
     # ========================
@@ -41,6 +40,8 @@ class XingYunAPI(Star):
         msg = "📡 API列表：\n\n"
 
         for key, api in self.api_data.items():
+            if not isinstance(api, dict):
+                continue
             name = api.get("name", "未命名")
             msg += f"🔹 {key} → {name}\n"
 
@@ -85,9 +86,12 @@ class XingYunAPI(Star):
             yield event.plain_result("API不存在")
             return
 
+        # 调用API
         content = await self.request_api(api, args)
 
-        await self.handle_response(event, content, api)
+        # 修正点：async generator 需要 async for
+        async for r in self.handle_response(event, content, api):
+            yield r
 
     # ========================
     # 调试API
@@ -110,13 +114,17 @@ class XingYunAPI(Star):
 
         content = await self.request_api(api, args)
 
-        yield event.plain_result(f"调试结果：\n{content}")
+        async for r in self.handle_response(event, content, api):
+            yield r
 
     # ========================
     # 查找API
     # ========================
     def find_api(self, trigger):
-        return self.api_data.get(trigger)
+        api = self.api_data.get(trigger)
+        if not isinstance(api, dict):
+            return None
+        return api
 
     # ========================
     # 请求API
@@ -162,7 +170,7 @@ class XingYunAPI(Star):
             return content
 
     # ========================
-    # 响应处理
+    # 响应处理（async generator）
     # ========================
     async def handle_response(self, event, content, api):
 
@@ -192,6 +200,7 @@ class XingYunAPI(Star):
             yield event.plain_result(url)
             return
 
+        # fallback
         yield event.plain_result(content)
 
     # ========================
