@@ -60,6 +60,7 @@ apis: template_list - API配置列表，每个元素代表一个API
 ```
 /weather 北京
 ```
+---
 
 插件将自动请求 https://api.weather.com/current?city=北京，并返回JSON格式的天气信息。
 
