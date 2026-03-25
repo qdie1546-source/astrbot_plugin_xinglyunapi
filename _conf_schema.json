@@ -1,0 +1,55 @@
+{
+  "enable_logging": {
+    "type": "bool",
+    "description": "是否启用调用日志输出",
+    "default": false,
+    "hint": "开启后会在控制台输出请求URL、参数、响应状态等信息，生产环境建议关闭以避免性能影响。"
+  },
+  "apis": {
+    "type": "template_list",
+    "description": "API配置列表",
+    "templates": {
+      "api_config": {
+        "name": "API配置",
+        "items": {
+          "command": {
+            "type": "string",
+            "description": "触发指令，例如 /weather"
+          },
+          "url": {
+            "type": "string",
+            "description": "API地址，支持 {param} 占位符"
+          },
+          "method": {
+            "type": "string",
+            "description": "HTTP方法",
+            "options": ["GET", "POST", "PUT", "DELETE"],
+            "default": "GET"
+          },
+          "headers": {
+            "type": "dict",
+            "description": "请求头",
+            "default": {}
+          },
+          "body": {
+            "type": "string",
+            "description": "请求体模板（JSON格式），支持 {param} 占位符，仅 POST/PUT 有效",
+            "default": ""
+          },
+          "response_type": {
+            "type": "string",
+            "description": "返回内容类型",
+            "options": ["text", "json"],
+            "default": "text"
+          }
+        }
+      }
+    }
+  },
+  "_ad_space": {
+    "type": "string",
+    "description": "广告位预留（暂不启用）",
+    "default": "",
+    "invisible": true
+  }
+}
