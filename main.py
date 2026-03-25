@@ -9,7 +9,7 @@ class XinglyunApiPlugin(Star):
         super().__init__(context)
         self.config = config
         self.enable_logging = config.get("enable_logging", False)
-        self.apis = {api["name"]: api for api in config.get("apis", [])}  # 以 name 为键的字典
+        self.apis = {api["name"]: api for api in config.get("apis", [])}
 
     @filter.command("Rapi")
     async def handle_rapi(self, event: AstrMessageEvent):
