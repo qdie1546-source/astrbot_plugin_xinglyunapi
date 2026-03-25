@@ -1,7 +1,10 @@
 name: astrbot_plugin_xinglyunapi
-display_name: 星落云自定义API
-author: 星落云
+display_name: 自定义API管理
 version: 2.1.0
-description: 通过WebUI灵活配置API和指令，实现任意外部API的动态调用。
-support_platforms: []
+author: 星落云
+description: 管理自定义API接口，支持动态配置触发指令和参数
+support_platforms:
+  - aiocqhttp
+  - telegram
+  - discord
 astrbot_version: ">=4.16"
