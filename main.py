@@ -20,18 +20,17 @@ class XingYunAPI(Star):
     @filter.command("查api")
     async def list_api(self, event: AstrMessageEvent):
         api_list = self.config.get("api_list", [])
-        ad = self.config.get("ad_text", "")
 
         if not api_list:
-            yield event.plain_result("暂无API")
+            yield event.plain_result("暂无API配置")
             return
 
         msg = "📡 API列表：\n\n"
-        for api in api_list:
-            msg += f"🔹 {api['trigger']} → {api['name']}\n"
 
-        if ad:
-            msg += f"\n———\n📢 {ad}"
+        for api in api_list:
+            name = api.get("name", "未命名")
+            trigger = api.get("trigger", "未知指令")
+            msg += f"🔹 {trigger} → {name}\n"
 
         yield event.plain_result(msg)
 
@@ -106,7 +105,7 @@ class XingYunAPI(Star):
     # ========================
     def find_api(self, trigger):
         for api in self.config.get("api_list", []):
-            if api["trigger"] == trigger:
+            if api.get("trigger") == trigger:
                 return api
         return None
 
@@ -115,7 +114,10 @@ class XingYunAPI(Star):
     # ========================
     async def request_api(self, api, args):
         params = {}
-        keys = api.get("params", [])
+
+        # 🔥 关键：字符串参数解析（替代 list）
+        param_str = api.get("params", "")
+        keys = [x.strip() for x in param_str.split(",") if x.strip()]
 
         for i, key in enumerate(keys):
             if i < len(args):
@@ -123,12 +125,13 @@ class XingYunAPI(Star):
 
         try:
             async with httpx.AsyncClient(timeout=15) as client:
-                if api.get("method") == "POST":
-                    resp = await client.post(api["url"], data=params)
+                if api.get("method", "GET").upper() == "POST":
+                    resp = await client.post(api.get("url"), data=params)
                 else:
-                    resp = await client.get(api["url"], params=params)
+                    resp = await client.get(api.get("url"), params=params)
 
             return resp.text.strip()
+
         except Exception as e:
             return f"请求失败: {str(e)}"
 
@@ -138,14 +141,17 @@ class XingYunAPI(Star):
     def extract_json(self, content, path):
         try:
             data = json.loads(content)
+
             for key in path.replace("]", "").split("."):
                 if "[" in key:
                     k, i = key.split("[")
                     data = data[k][int(i)]
                 else:
                     data = data[key]
+
             return str(data)
-        except:
+
+        except Exception:
             return content
 
     # ========================
@@ -154,10 +160,11 @@ class XingYunAPI(Star):
     async def handle_response(self, event, content, api):
 
         # JSON路径提取
-        if api.get("json_path"):
-            content = self.extract_json(content, api["json_path"])
+        json_path = api.get("json_path", "")
+        if json_path:
+            content = self.extract_json(content, json_path)
 
-        # URL识别
+        # 提取URL
         urls = re.findall(r'https?://[^\s]+', content)
 
         if urls:
@@ -178,13 +185,17 @@ class XingYunAPI(Star):
             yield event.plain_result(url)
             return
 
+        # fallback
         yield event.plain_result(content)
 
+    # ========================
+    # 类型判断
+    # ========================
     def is_image(self, url):
-        return any(url.endswith(x) for x in [".jpg", ".png", ".jpeg", ".gif"])
+        return any(url.lower().endswith(x) for x in [".jpg", ".png", ".jpeg", ".gif", ".webp"])
 
     def is_audio(self, url):
-        return any(url.endswith(x) for x in [".mp3", ".wav"])
+        return any(url.lower().endswith(x) for x in [".mp3", ".wav", ".aac"])
 
     def is_video(self, url):
-        return any(url.endswith(x) for x in [".mp4", ".m3u8"])
+        return any(url.lower().endswith(x) for x in [".mp4", ".m3u8", ".flv"])
