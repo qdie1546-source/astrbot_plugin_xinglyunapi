@@ -1,10 +1,5 @@
-name: astrbot_plugin_xinglyunapi
-display_name: 自定义API管理
-version: 2.1.0
+name: 自定义API管理
 author: 星落云
-description: 管理自定义API接口，支持动态配置触发指令和参数
-support_platforms:
-  - aiocqhttp
-  - telegram
-  - discord
-astrbot_version: ">=4.16"
+version: v2.1.0
+description: 可动态配置API接口并通过指令调用，支持图片/音频/视频自动识别返回
+repo: https://github.com/qdie1546-source/astrbot_plugin_xinglyunapi.git
