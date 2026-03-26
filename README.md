@@ -81,6 +81,25 @@ if self.is_video(url):
 
 ## 更新记录 / Changelog
 
+
+## v2.3.1（2026-03-26）
+
+### 🔥 UI重构版
+- 改为JSON编辑器管理API
+- 修复UI无法点击问题
+- 新增 /查api 指令
+- 优化图片识别逻辑
+- 支持Base64图片发送
+- 修复返回链接不显示图片问题
+- 修复JSON解析异常问题
+
+---
+
+## v2.3.0
+- API架构重构
+- 支持媒体自动识别
+- 支持参数替换
+
 ### v2.2.8 (2026-03-26)
 *   修复 `/Rapi` 和 `/调试api` 可能触发 `list index out of range` 的问题 / Fix list index out of range issue
 *   图片 API 调用现在能直接显示图片，而不是只显示链接 / Image API now sends direct image
