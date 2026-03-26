@@ -5,6 +5,9 @@
 
 This plugin "XingYunAPI Custom API Management" is open source under the **MIT License**. You are welcome to use, modify, and distribute it on GitHub.
 
+![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+[![AstrBot](https://img.shields.io/badge/AstrBot-Plugin-ff69b4?style=for-the-badge)](https://github.com/AstrBotDevs/AstrBot)
+
 ## 插件简介 / Plugin Overview
 *   插件名称 / Plugin Name: 自定义API管理 / Custom API Management
 *   开发者 / Author: 星落云 / XingLuoYun
