@@ -8,7 +8,7 @@ This plugin "XingYunAPI Custom API Management" is open source under the **MIT Li
 ## 插件简介 / Plugin Overview
 *   插件名称 / Plugin Name: 自定义API管理 / Custom API Management
 *   开发者 / Author: 星落云 / XingLuoYun
-*   版本 / Version: v2.2.8
+*   版本 / Version: v2.3.1
 *   项目链接 / GitHub: [点击访问](https://github.com/qdie1546-source/astrbot_plugin_xinglyunapi.git)
 *   功能 / Features: 管理自定义 API，多参数接口调用，自动识别图片/音频/视频并发送 / Manage custom APIs, multiple parameters, automatically send images/audio/video
 
